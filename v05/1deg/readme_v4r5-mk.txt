@@ -18,6 +18,7 @@ wget -r --no-parent --user=kaima --ask-najWLdAYv5PWO7koyPRa https://ecco.jpl.nas
 # ========
 # 1. Get code
 git clone https://github.com/MITgcm/MITgcm.git -b checkpoint68g
+#没找到
 git clone --depth 1 https://github.com/MITgcm-contrib/ecco_darwin.git
 cd MITgcm
 
@@ -31,6 +32,8 @@ module load comp-intel/2020.4.304 mpi-hpe/mpt.2.25 hdf4/4.2.12 hdf5/1.8.18_mpt n
 MOD="../../ecco_darwin/v05/1deg"
 ../tools/genmake2 -of ../tools/build_options/linux_amd64_ifort+mpi_ice_nas \
 		  -mo ${MOD}/code_v4r5 -mpi
+MOD="../../../ecco_darwin/v05/1deg"
+../../tools/genmake2 -mpi -of ../../tools/build_options/linux_amd64_ifort+mpi_ice_eX -mo \ '/fs2/home/yfeng1982_3/ecco_darwin/v05/3deg/code ../code_darwin_new /fs2/home/yfeng1982_3/ecco_darwin/v05/llc270/code'
 make depend
 make -j 16
 
