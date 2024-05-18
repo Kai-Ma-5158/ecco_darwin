@@ -30,7 +30,7 @@ module load comp-intel/2020.4.304 mpi-hpe/mpt.2.25 hdf4/4.2.12 hdf5/1.8.18_mpt n
 MOD="/fs2/home/yfeng1982_3/darwin3/1deg/1deg/"
 ../../tools/genmake2 -mpi -of ../../tools/build_options/linux_amd64_ifort+mpi_ice_eX -mo \ '../1deg/code_add_v4r5 ../1deg/code_darwin_v4r5 ../1deg/code_v4r5'
 
-../tools/genmake2 -mpi -of ../tools/build_options/linux_amd64_ifort+mpi_ice_eX -mo \ '../ecco_darwin_1deg/code_add_v4r5 ../ecco_darwin_1deg/code_darwin_v4r5 ../1deg/code_v4r5'
+../tools/genmake2 -mpi -of ../tools/build_options/linux_amd64_ifort+mpi_ice_eX -mo \ '../ecco_darwin_1deg/code_add_v4r5 ../ecco_darwin_1deg/code_darwin_v4r5 ../ecco_darwin_1deg/code_v4r5'
 
 make depend
 make -j 16
