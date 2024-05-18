@@ -18,7 +18,7 @@ wget -r --no-parent --user=kaima --ask-najWLdAYv5PWO7koyPRa https://ecco.jpl.nas
 # ========
 # 1. Get code
 git clone https://github.com/MITgcm/MITgcm.git -b checkpoint68g
-#没找到
+
 git clone --depth 1 https://github.com/MITgcm-contrib/ecco_darwin.git
 cd MITgcm
 
