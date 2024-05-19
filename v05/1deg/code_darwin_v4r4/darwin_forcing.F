@@ -61,6 +61,11 @@ C  k                    :: vertical level
       INTEGER i,j,k,kdn,iTr,l,isub
       CHARACTER*8 diagname
       _RL dTsub(Nr)
+C-Makai
+C-array of values of depth of tracers
+      _RL depthT(Nr)
+C-Makai
+
       _RL midTime, subTime
       _RL gPtr(1-OLx:sNx+OLx, 1-OLy:sNy+OLy, Nr, nDarwin)
       _RL gPtrTemp(1-OLx:sNx+OLx, 1-OLy:sNy+OLy, Nr, nDarwin)
@@ -78,6 +83,22 @@ C  k                    :: vertical level
       _RL gSiO2surfForc(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
       _RL gO2surfForc(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
       _RL gO2(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
+C-Makai
+      _RL gO2THsurfForc(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
+      _RL gO2TH(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
+C
+      _RL gN2OsurfForc(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
+      _RL gN2O(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
+C
+
+      _RL gN2OTHsurfForc(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
+      _RL gN2OTH(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
+C
+
+      _RL gARsurfForc(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
+      _RL gAR(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
+
+C-Makai
       _RL surfFe(1-OLx:sNx+OLx, 1-OLy:sNy+OLy)
       _RL freeFe(1-OLx:sNx+OLx, 1-OLy:sNy+OLy, Nr)
       _RL diffFe1(1-OLx:sNx+OLx, 1-OLy:sNy+OLy, Nr)
@@ -89,6 +110,12 @@ C  k                    :: vertical level
       _RL scv,scav_poc
       _RL flx, POCl
       _RL ptr(nDarwin), gtr(nDarwin), PARl(nlam)
+
+C PAR in the first layer - surface
+      _RL PARlsrf(nlam)!makai
+C and depth local var
+      _RL depthl!makai
+
       _RL chlout(nPhoto)
       _RL diagsl(darwin_nDiag)
       _RL photoTempFunc(nplank)
@@ -125,6 +152,7 @@ C  k                    :: vertical level
 
       DO k=1,Nr
        dTsub(k) = PTRACERS_dTLev(k)/nsubtime
+       depthT(k) = drC(k)!makai
       ENDDO
 
 C     time at middle of sub-timestep
@@ -186,7 +214,7 @@ C === dic ==============================================================
 C carbon air-sea interaction
       CALL TIMER_START('DARWIN_SURFFORCING [DARWIN_FORCING]',myThid)
       CALL DARWIN_SURFFORCING(
-     O                    gDIC, gALK, gO2,
+     O                    gDIC, gALK, gO2,gO2TH,gN2O,gN2OTH,gAR,!makai
      I                    bi,bj,iMin,iMax,jMin,jMax,
      I                    subTime,myIter,myThid)
       CALL TIMER_STOP ('DARWIN_SURFFORCING [DARWIN_FORCING]',myThid)
@@ -222,6 +250,14 @@ C surface fluxes from E/P/runoff
      &   * recip_drF(1)*recip_hFacC(i,j,1,bi,bj)
         gO2surfForc(i,j) = surfaceForcingPTr(i,j,bi,bj,iO2)
      &   * recip_drF(1)*recip_hFacC(i,j,1,bi,bj)
+C-makai
+C  ADDING FOUR NEW TRACERS
+        gPtr(i,j,1,iO2TH)  = gPtr(i,j,1,iO2TH)  + gO2TH(i,j)!makai
+        gPtr(i,j,1,iN2O)  = gPtr(i,j,1,iN2O)  + gN2O(i,j)!makai
+        gPtr(i,j,1,iN2OTH)  = gPtr(i,j,1,iN2OTH)  + gN2OTH(i,j)!makai
+        gPtr(i,j,1,iAR)  = gPtr(i,j,1,iAR)  + gAR(i,j)!makai
+C-Makai
+
       ENDDO
       ENDDO
 
@@ -332,6 +368,8 @@ C     iron sediment source (in bottom grid cell above kMaxFeSed)
 C === plankton =========================================================
       CALL TIMER_START('DARWIN_PLANKTON [DARWIN_FORCING]',myThid)
       do k=1,Nr
+C saving temp depth local value
+      depthl=RC(k)!makai
       do j=jMin,jMax
       do i=iMin,iMax
       if (hFacC(i,j,k,bi,bj) .GT. 0.) then
@@ -345,12 +383,15 @@ C === plankton =========================================================
         ENDDO
         DO l=1,nlam
          PARl(l) = MAX(0 _d 0, PAR(i, j, k, l))
+C-ADDing here the surface value only!makai
+         PARlsrf(l)  = MAX(0 _d 0, PAR(i, j, 1, l))!makai
         ENDDO
         CALL DARWIN_PLANKTON(
      I                 ptr,
      U                 gtr,
      O                 chlout, diagsl,
      I                 PARl, photoTempFunc,
+     I                 PARlsrf,depthl,!makai
      I                 hetTempFunc,
      I                 grazTempFunc,
      I                 reminTempFunc,
@@ -700,6 +741,14 @@ C      diags(iCons*) for convenience
      &  bi,bj,myThid)
        CALL DIAGNOSTICS_FILL(gALK,   'gALKsurf',0,1,2,bi,bj,myThid)
        CALL DIAGNOSTICS_FILL(gO2,    'gO2surf ',0,1,2,bi,bj,myThid)
+       CALL DIAGNOSTICS_FILL(gO2TH,    'gO2Tsurf',0,1,2,bi,bj,myThid)!makai
+       CALL DIAGNOSTICS_FILL(gN2O,     'gN2Osurf',0,1,2,bi,bj,myThid)!makai
+       CALL DIAGNOSTICS_FILL(gN2OTH,   'gN2OTHsu',0,1,2,bi,bj,myThid)!makai
+       CALL DIAGNOSTICS_FILL(gAR,      'gARsurf ',0,1,2,bi,bj,myThid)!makai
+       CALL DIAGNOSTICS_FILL(FluxO2TH, 'fluxO2TH',0,1,1,bi,bj,myThid)!makai
+       CALL DIAGNOSTICS_FILL(FluxN2O,  'fluxN2O ',0,1,1,bi,bj,myThid)!makai
+       CALL DIAGNOSTICS_FILL(FluxN2OTH,'fluN2OTH',0,1,1,bi,bj,myThid)!makai
+       CALL DIAGNOSTICS_FILL(FluxAR,   'fluxAR  ',0,1,1,bi,bj,myThid)!makai
 #endif
        CALL TIMER_STOP ('DIAGS_FILL [DARWIN_FORCING]',myThid)
       ENDIF
