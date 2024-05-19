@@ -55,7 +55,8 @@ C
 C Carbon Variables
 
        COMMON /CARBON_NEEDS/
-     &   pH, pCO2, Atmosp, FluxCO2, FluxO2
+     &   pH, pCO2, Atmosp, FluxCO2, FluxO2,
+     &   FluxO2TH,FluxN2O,FluxN2OTH,FluxAR!makai
 #ifdef ALLOW_OLD_VIRTUALFLUX
      &   ,VFluxCO2, VFluxAlk
 #endif
@@ -65,6 +66,16 @@ C Carbon Variables
       _RL  apCO2Sat(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
       _RL  FluxCO2(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
       _RL  FluxO2(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
+C-makai
+C Adding arrays for new gas fluxes
+ 
+      _RL FluxO2TH(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)!makai
+      _RL FluxN2O(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)!makai
+      _RL FluxN2OTH(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)!makai
+      _RL FluxAR(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)!makai
+
+C-makai 
+
 #ifdef ALLOW_OLD_VIRTUALFLUX
       _RL  VFluxCO2(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
       _RL  VFluxAlk(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
