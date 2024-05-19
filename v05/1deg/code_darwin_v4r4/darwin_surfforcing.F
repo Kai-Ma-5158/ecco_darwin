@@ -6,7 +6,7 @@ C !ROUTINE: DARWIN_SURFFORCING
 C !INTERFACE: ==========================================================
       SUBROUTINE DARWIN_SURFFORCING(
      O           gDIC, gALK, gO2,
-     O           gO2TH, gN2O, gNaOTH, gAR,!makai
+     O           gO2TH, gN2O, gN2OTH, gAR,!makai
      I           bi,bj,imin,imax,jmin,jmax,
      I           myTime,myIter,myThid)
 
