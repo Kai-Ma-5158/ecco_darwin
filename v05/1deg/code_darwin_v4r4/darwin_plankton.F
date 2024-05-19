@@ -7,6 +7,7 @@ C !INTERFACE: ==========================================================
      I     Ptr,
      U     gTr,
      O     chlout, diags,
+     I     PARsrf, ddepth,!makai
      I     PAR, photoTempFunc, hetTempFunc, grazTempFunc, reminTempFunc,
      I     mortTempFunc, mort2TempFunc, uptakeTempFunc,
 #ifdef DARWIN_DEBUG
@@ -37,6 +38,7 @@ C  myIter :: current iteration number
 C  myThid :: thread number
       _RL Ptr(nDarwin)
       _RL PAR(nlam)
+      _RL PARsrf(nlam)!makai
       _RL photoTempFunc(nplank)
       _RL hetTempFunc(nplank)
       _RL reminTempFunc
@@ -66,7 +68,7 @@ CEOP
 c !LOCAL VARIABLES: ====================================================
       INTEGER j, l
       INTEGER jz, jp
-
+      _RL ddepth!makai
       _RL DIC
       _RL NH4
       _RL NO2
@@ -85,6 +87,11 @@ c !LOCAL VARIABLES: ====================================================
       _RL POFe
       _RL pIC
       _RL O2
+
+      _RL O2TH!makai
+      _RL N2O!makai
+      _RL N2OTH!makai
+      _RL AR!makai
 
       _RL X(nplank)
       _RL Qc(nplank)
@@ -208,9 +215,9 @@ c !LOCAL VARIABLES: ====================================================
 
       _RL prodNO2
       _RL prodNO3
-
+      _RL prodN2O!makai
       _RL PARtot
-
+      _RL PARsrftot!makai
       _RL tmp
 
 #ifdef DARWIN_ALLOW_CDOM
@@ -282,6 +289,7 @@ C for grazing
 C==== precompute a few things ==========================================
 
       PARtot = SUM(PAR)
+      PARsrftot=SUM(PARsrf)!makai
 
 C==== make all bio fields non-negative and compute quotas ==============
 
@@ -306,6 +314,10 @@ C==== make all bio fields non-negative and compute quotas ==============
       POFe = MAX(0., Ptr(iPOFe))
 #ifdef DARWIN_ALLOW_CARBON
       O2   = MAX(0., Ptr(iO2))
+      O2TH = MAX(0., Ptr(iO2TH))!makai
+      N2O  = MAX(0., Ptr(iN2O))!makai
+      N2OTH= MAX(0., Ptr(iN2OTH))!makai
+      AR   = MAX(0., Ptr(iAR))!makai
 #endif
 #ifdef DARWIN_ALLOW_CDOM
       CDOM = MAX(0., Ptr(iCDOM))
@@ -399,6 +411,7 @@ c ratio if not variable.
       solubilPOFe  = 0.0
       prodNO2 = 0.0
       prodNO3 = 0.0
+      prodN2O = 0.0!makai
 
       DO j = 1, nPhoto
         chlout(j) = 0.0 _d 0
@@ -945,11 +958,37 @@ C==== apply tendencies =================================================
 #ifdef DARWIN_ALLOW_CARBON
 c production of O2 by photosynthesis
       gTr(iO2  )=gTr(iO2  ) + R_OP*consumPO4
+      gTr(iO2TH)=gtr(iO2TH)!makai
+      gTr(iN2O )=gTr(iN2O )!makai
+      gTr(iN2OTH)=gTr(iN2OTH)!makai
+      gTr(iAR  )=gTr(iAR  )!makai 
+
 c loss of O2 by remineralization
       IF (O2 .GT. O2crit) THEN
         gTr(iO2)=gTr(iO2) - consumO2
         diags(iConsO2) = consumO2
       ENDIF
+C makai
+C Here adding the part of N2O total!makai
+             IF (PARtot.LT.PARsrftot/100!makai
+     &  .AND.O2.GT.O2critN2O) THEN !makai
+
+         prodN2O= consumO2 * R_ON    !makai
+     &      * ( (a1constN2O/O2) + a2constN2O) !makai
+     &           * exp(ddepth/ZscalN2O) !makai
+
+        IF (prodN2O.GT.0) THEN!makai
+        ENDIF!makai
+       ELSE!makai
+          prodN2O = 0.0!makai        
+       ENDIF!makai       
+C N2O
+        gTr(iN2O)=gTr(iN2O) + prodN2O!makai
+C THERMAL N2O
+        gTr(iN2OTH) = gTr(iN2OTH)!makai
+C ARGON
+        gTr(iAR) = gTr(iAR)!makai    
+C makai
 
       gTr(iALK)=gTr(iALK) - (prodNO3 - consumNO3)
      &                    - 2.0 _d 0*(consumDIC_PIC - disscPIC)
