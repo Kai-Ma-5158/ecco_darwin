@@ -39,7 +39,7 @@ rm data data.pkg data.diagnostics
 cp ../1deg_code/input_darwin_v4r4/* .
 cp ../1deg_code/input_darwin_v4r4_new/* .
 cp ../code/input_darwin/* 
-
+cp ../code/input_new/* 
 
 INPUTDIR='/fs2/home/yfeng1982_3/Downloads/LLC90/Release4'
 # atmospheric forcing
